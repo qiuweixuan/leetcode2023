@@ -9,6 +9,7 @@
 @Project ：leetcode2023
 """
 from typing import Optional, List
+import heapq
 
 from link_solve.list_node_class import ListNode
 
@@ -64,3 +65,40 @@ class Solution:
         if len(cur_lists) == 0:
             return None
         return cur_lists[0]
+
+    def mergeKListsByHeap(self, lists: List[Optional[ListNode]]) -> Optional[ListNode]:
+        """
+        1. 使用堆完成k个元素的最小值、最大值获取
+        2. 使用虚拟头节点，简化链表插入操作实现
+        :param lists:
+        :return:
+        """
+
+        # ListNode.lt = lambda left_elem, right_elem: left_elem.val < right_elem.val
+        def sort_func(left_elem: ListNode, right_elem: ListNode):
+            return left_elem.val < right_elem.val
+
+        # 自定义比较函数
+        ListNode.lt = sort_func
+
+        # 虚拟头结点
+        dummy = ListNode(-1)
+        # 当前指针
+        cur_ptr = dummy
+        # 优先级队列，最小堆
+        priority_queue = []
+        for head in lists:
+            if head:
+                # 构建（比较元素取值，元素节点）元组
+                # heapq用法不是绑定到实例上，而是提供辅助函数的方式，读取数组列表中的元素
+                heapq.heappush(priority_queue, (head.val, head))
+        # 不断遍历优先队列，直至队列为空，说明已经遍历所有列表
+        while len(priority_queue) > 0:
+            _, node = heapq.heappop(priority_queue)
+            cur_ptr.next = node
+            cur_ptr = node
+            if node.next:
+                heapq.heappush(priority_queue, (node.next.val, node.next))
+            cur_ptr.next = None
+        # 返回头指针的下个节点
+        return dummy.next
